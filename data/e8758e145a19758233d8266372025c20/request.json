@@ -1,0 +1,64 @@
+{
+    "request": {
+        "headers": {
+            "accept": "image/png",
+            "content-type": "application/json"
+        },
+        "payload": {
+            "evalscript": "\n//VERSION=3\nfunction setup() {\n  return {\n    input: [\"B04\",\"B03\",\"B02\", \"dataMask\"],\n    output: { bands: 4 }\n  };\n}\n\n// Contrast enhance / highlight compress\n\nconst maxR = 3.0; // max reflectance\nconst midR = 0.13;\nconst sat = 1.2;\nconst gamma = 1.8;\nconst scalefac = 10000;\n\nfunction evaluatePixel(smp) {\n  const rgbLin = satEnh(sAdj(smp.B04/scalefac), sAdj(smp.B03/scalefac), sAdj(smp.B02/scalefac));\n  return [sRGB(rgbLin[0]), sRGB(rgbLin[1]), sRGB(rgbLin[2]), smp.dataMask];\n}\n\nfunction sAdj(a) {\n  return adjGamma(adj(a, midR, 1, maxR));\n}\n\nconst gOff = 0.01;\nconst gOffPow = Math.pow(gOff, gamma);\nconst gOffRange = Math.pow(1 + gOff, gamma) - gOffPow;\n\nfunction adjGamma(b) {\n  return (Math.pow((b + gOff), gamma) - gOffPow)/gOffRange;\n}\n\n// Saturation enhancement\nfunction satEnh(r, g, b) {\n  const avgS = (r + g + b) / 3.0 * (1 - sat);\n  return [clip(avgS + r * sat), clip(avgS + g * sat), clip(avgS + b * sat)];\n}\n\nfunction clip(s) {\n  return s < 0 ? 0 : s > 1 ? 1 : s;\n}\n\n//contrast enhancement with highlight compression\nfunction adj(a, tx, ty, maxC) {\n  var ar = clip(a / maxC, 0, 1);\n  return ar * (ar * (tx/maxC + ty -1) - ty) / (ar * (2 * tx/maxC - 1) - tx/maxC);\n}\n\nconst sRGB = (c) => c <= 0.0031308 ? (12.92 * c) : (1.055 * Math.pow(c, 0.41666666666) - 0.055);",
+            "input": {
+                "bounds": {
+                    "bbox": [
+                        24.053267,
+                        56.899626,
+                        24.054195,
+                        56.900156
+                    ],
+                    "properties": {
+                        "crs": "http://www.opengis.net/def/crs/EPSG/0/4326"
+                    }
+                },
+                "data": [
+                    {
+                        "dataFilter": {
+                            "timeRange": {
+                                "from": "2023-07-01T00:00:00Z",
+                                "to": "2023-07-02T23:59:59Z"
+                            }
+                        },
+                        "type": "byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca"
+                    }
+                ]
+            },
+            "output": {
+                "height": 565,
+                "responses": [
+                    {
+                        "format": {
+                            "type": "image/png"
+                        },
+                        "identifier": "default"
+                    }
+                ],
+                "width": 590
+            }
+        },
+        "timestamp": "2024-04-01T13:42:09.402853",
+        "url": "https://sh.dataspace.copernicus.eu/api/v1/process"
+    },
+    "response": {
+        "elapsed": 3.99061,
+        "headers": {
+            "access-control-allow-credentials": "true",
+            "access-control-allow-headers": "origin,content-type,accept,accept-crs,authorization,cache-control",
+            "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
+            "access-control-allow-origin": "*",
+            "access-control-max-age": "3600",
+            "content-type": "image/png",
+            "date": "Mon, 01 Apr 2024 11:42:06 GMT",
+            "transfer-encoding": "chunked",
+            "x-processingunits-spent": "1.2716293334960938"
+        },
+        "status_code": 200
+    }
+}
